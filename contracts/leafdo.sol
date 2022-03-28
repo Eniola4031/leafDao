@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -14,16 +13,16 @@ contract leafDao is Ownable {
 
     uint256 mintPrice = 0.06 ether;
     ERC721 public lazyLionToken;
+    bool isLazyLionOwner = false;
     bool public enableWhitelist = false;
-    //address holder;
-
+    bool public disableWhitelist = false;
 
 
     constructor(address lionToken) {
         lazyLionToken = ERC721(lionToken) ;
 
     }
-        mapping(address => address) holderToWhitelist;
+        mapping(address => bool) holderToIsWhitelist;
 
     // function mintLion(uint256 numberOfTokens) public payable {
     //     require(saleIsActive, "Sale must be active to mint Lion");
@@ -42,21 +41,33 @@ contract leafDao is Ownable {
     // }
 
     
-    function addToWhitelist(address user) public onlyOwner{
-        //require(msg.sender == user);
-        holderToWhitelist[msg.sender] = user;
+    // function addToWhitelist(address user) public onlyOwner{
+    //     //require(msg.sender == user);
+    //     msg.sender = user;
 
-    }
+    // }
 
-    function isWhitelist(address whitelisted) public returns(bool){
-        holderToWhitelist[whitelisted];
-        return true;
-    }
+    // function isWhitelist(address whitelisted) public returns(bool){
+    //     holderToIsWhitelist[whitelisted];
+    //     return true;
+    // }
 
     function whitelistState() public onlyOwner{
         enableWhitelist =!enableWhitelist;
 
     }
+    
+
+    function mint(uint noOfTokenToMint) public view  {
+        uint lazyEditionHeadphones = 120;
+        require(isLazyLionOwner, "You must be a lazy lion owner");
+        require(noOfTokenToMint > 0 && noOfTokenToMint <= lazyEditionHeadphones, "Can only mint 1 tokens per wallet");
+        require(holderToIsWhitelist[msg.sender], "only whitelisted address can mint");
+
+
+    }
+
+    
 
    
    
