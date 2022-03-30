@@ -14,22 +14,30 @@ contract leafDao is Ownable {
     uint256 mintPrice = 0.06 ether;
     string public constant whitelistRole ="whitelist";
     string public constant adminRole = "admin";
+    bool public enableWhitelist = false;
+    bool public disableWhitelist = false;
+    uint mintLazyEditionAmt = 1;
+
 
 
                 //checks if address if whitelisted
-             mapping(address => bool) public whitelist;
+             mapping(address => bool) public whitelisted;
              mapping(address => bool) public admin;
+            mapping (address => uint) public balances;
+
 
     
 /**
-   * @dev Throws if called by any account that's not whitelisted.
+   * @dev Throws if called by any account that's not eded.
    */
-         modifier onlyIfWhitelisted() {
-    require(whitelist[msg.sender]);
+         modifier onlyIfWhitelisted(address _operator) {
+    require(whitelisted[_operator]);
     _;
   }
    modifier onlyAdmin(){
-    require(admin[msg.sender]);     
+         //  require(msg.sender == owner);
+
+    require(admin[msg.sender]);  
       _;
    }
    
@@ -45,18 +53,18 @@ contract leafDao is Ownable {
    * @param addr address
    * @notice true if the address was added to the whitelist, false if the address was already in the whitelist 
    */
-  function addAddressToWhitelist(address addr) onlyOwner public returns(bool success) {
+  function addToWhitelist(address addr) onlyOwner public returns(bool success) {
     //   require(whitelist[addr] == true);
     //   require(WhitelistedAddressAdded(addr) == true);      
-    if (!whitelist[addr]) {
-      whitelist[addr] = true;
+    if (!whitelisted[addr]) {
+      whitelisted[addr] = true;
 
         emit WhitelistedAddressAdded(addr);
       success = true; 
     }
 
   }
-  function addAddressAsAdmin(address addr) onlyOwner external returns(bool success) {
+  function addAsAdmin(address addr) onlyOwner external returns(bool success) {
     //    require(!admin[addr], "already an admin");
     //    admin[addr];
     if (!admin[addr]) {
@@ -73,7 +81,7 @@ contract leafDao is Ownable {
    */
   function addAddressesToWhitelist(address[] memory addrs) onlyOwner public returns(bool success) {
     for (uint256 i = 0; i < addrs.length; i++) {
-      if (addAddressToWhitelist(addrs[i])) {
+      if (addToWhitelist(addrs[i])) {
         success = true;
       }
     }
@@ -82,9 +90,33 @@ contract leafDao is Ownable {
 
 
     
-   function increaseMintAmt(uint tokenAmt) onlyAdmin public {
-       require(admin[msg.sender]);
+   function increaseMintAmt() onlyAdmin public {
+       require(admin[msg.sender],"the method can only be called by the admin");
+         mintLazyEditionAmt++;
 
+   }
+
+   function mintLazyEdition(address addr, uint tokenamt) onlyIfWhitelisted(addr) public {
+       //mintLazyEditionAmt= tokenamt;
+       require(tokenamt == mintLazyEditionAmt,"You can only mint 1 token per wallet");
+       require(whitelisted[addr],"you are not whitelisted");
+       balances[msg.sender] += tokenamt;
+
+   }
+              //error InsufficientBalance(uint requested, uint available);
+
+      function mintKingEdition(address addr, uint tokenamt) onlyIfWhitelisted(addr) public payable{
+       uint mintKingEditionAmt= 3;
+       require(tokenamt == mintKingEditionAmt,"You can only mint 3 token per wallet");
+       require(whitelisted[addr],"you are not whitelisted");
+       balances[msg.sender] += tokenamt;
+
+
+   }
+
+
+   function whitelistState(bool _state) public onlyAdmin{
+       enableWhitelist = _state;
 
    }
 
