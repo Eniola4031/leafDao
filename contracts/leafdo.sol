@@ -23,19 +23,17 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
       uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     // string public constant whitelistRole ="whitelist";
     // string public constant adminRole = "admin";
-    bool public whitelistEnabled = false;
-    uint public newMintAmt;
+    bool public whitelistState = false;
+    uint public newLazyMintAmt;
+    uint public newKingMintAmt;
     uint maxMintKingAmount = 3;
     uint maxMintLazyAmount = 1;
      uint MaxTokenSupply = 500;
-    lazyLionI _lazyLion = lazyLionI(0xDA07165D4f7c84EEEfa7a4Ff439e039B7925d3dF);
-
+    lazyLionI _lazyLion = lazyLionI(0xd9145CCE52D386f254917e481eB44e9943F39138);
 
              mapping(address => bool) public isWhitelisted;
              mapping(address => bool) public isAdmin;
-            mapping(address => uint256) public _tokensMintedByAddress;
-            mapping(address => bool) public hasMinted;
-
+            mapping(address => uint) public _tokensMintedByAddress;
 
     constructor()ERC721("leafDAO","LFD"){}
     
@@ -90,7 +88,7 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
    * false if all addresses were already in the whitelist  
    */
   function addAddressesToWhitelist(address[] memory addrs) onlyAdmin public returns(bool success) {
-     // require(_lazyLion.balanceOf(addrs) > 0, "not a lazy lion owner");     
+     // require(_lazyLion.balanceOf(addrs[] memory) > 0, "not a lazy lion owner");     
     for (uint256 i = 0; i < addrs.length; i++) {
       if (addToWhitelist(addrs[i])) {
         success = true;
@@ -98,9 +96,13 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     }
   }
 
-       function increaseMintAmt(uint256 _newMint) public onlyAdmin {
-        newMintAmt = _newMint;
+       function increaseLazyMintAmt(uint256 _newMint) public onlyAdmin {
+        newLazyMintAmt = _newMint;
     }
+     function increaseKingMintAmt(uint256 _newMint) public onlyAdmin {
+        newKingMintAmt = _newMint;
+    }
+
 
     /*
     * Only whitelisted lazylion owners can mint
@@ -113,8 +115,9 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
    function mintLazyEdition(uint _mintAmount) nonReentrant onlyWhitelisted public{
      // Number of tokens can't be 0.
        require(_mintAmount != 0, "Cannot mint 0 tokens");
-        // Check that the number of tokens requested doesn't exceed the max. allowed.
-        require(_mintAmount <= maxMintLazyAmount, "You have exceeded the max token mint");
+       _tokensMintedByAddress[msg.sender]  += _mintAmount; //update users record
+        //check if address has minted
+        require(_tokensMintedByAddress[msg.sender] <= maxMintLazyAmount, "you have exceeded mint limit per wallet");
         uint tokenLeft = totalSupply() + _mintAmount;
         // Check that the number of tokens requested wouldn't exceed what's left.
         require(tokenLeft <= MaxTokenSupply, "Minting would exceed max. supply");
@@ -125,20 +128,21 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
        if(mintIndex <= 120  && mintIndex <= MaxTokenSupply){
              _safeMint(msg.sender, mintIndex);
        }
-        }
-        //check if address has minted
-        require(_tokensMintedByAddress[msg.sender] + _mintAmount <= maxMintLazyAmount, "you have aready minted 1 per wallet");
-           
+        }   
    }
+   function mintKingEdition(uint _mintAmount) nonReentrant public payable{
+    if(whitelistState == true){
+    require(isWhitelisted[msg.sender],"whitelist Enabled: only whiteListedAddress can mint"); 
+    }
+    else{
+      require(_lazyLion.balanceOf(msg.sender) > 0, "not a lazy lion owner");     
 
-    
-   function mintKingEdition(uint _mintAmount) onlyWhitelisted nonReentrant public payable{
-     // Number of tokens can't be 0.
-        require(_mintAmount != 0, "You need to mint at least 1 token");
-              require(hasMinted[msg.sender] == true, "you have aexceeded mint limit per wallet");
-
-        // Check that the number of tokens requested doesn't exceed the max. allowed.
-        require(_mintAmount <= maxMintKingAmount, "You can only mint 3 token per wallet");
+    }
+         // Number of tokens can't be 0.
+        require(_mintAmount != 0, "Cannot mint 0 tokens");
+       _tokensMintedByAddress[msg.sender]  += _mintAmount;//update users record
+        //check if address has minted
+        require(_tokensMintedByAddress[msg.sender] <= maxMintKingAmount, "you have exceeded mint limit per wallet");
         uint tokenLeft = totalSupply() + _mintAmount;
         // Check that the number of tokens requested wouldn't exceed what's left.
         require(tokenLeft <= MaxTokenSupply, "Minting would exceed max. supply");
@@ -155,8 +159,8 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
    }
 
 
-   function enableWhitelistState() public onlyAdmin{
-       whitelistEnabled = !whitelistEnabled;
+   function changeWhitelistState() public onlyAdmin{
+       whitelistState = !whitelistState;
 
    }
     function getBalance() public view returns (uint256) {
@@ -165,19 +169,4 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
   
 }
 
-//    mapping(address => uint256) private _tokensMintedByAddress;
-// uint256 public MAX_TOKENS_MINTED_BY_ADDRESS = 1;
-// uint256 private _currentId;
-// function publicMint(uint amount) external override payable {
-//   require(_tokensMintedByAddress[msg.sender] + amount <= MAX_TOKENS_MINTED_BY_ADDRESS, 'Error: ');
-//   _tokensMintedByAddress[msg.sender]+= 1;
-//   _safeMint(msg.sender, _currentId++);
-// }
- 
-//  uint256 public MAX_TOKENS_MINTED_BY_ADDRESS = 1;
-// uint256 private _currentId;
-// function publicMint(uint amount) external override payable {
-//   require(balanceOf[msg.sender] + amount <= MAX_TOKENS_MINTED_BY_ADDRESS, 'Error: ');
-//   _safeMint(msg.sender, _currentId++);
-// }
 
