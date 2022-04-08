@@ -20,29 +20,28 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
 
  Counters.Counter private _tokenIdCounter;
 
-      uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
-    // string public constant whitelistRole ="whitelist";
-    // string public constant adminRole = "admin";
+    uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     bool public whitelistState = false;
     uint maxMintKingAmount = 3;
     uint maxMintLazyAmount = 1;
      uint MaxTokenSupply = 500;
-    lazyLionI _lazyLion = lazyLionI(0xd9145CCE52D386f254917e481eB44e9943F39138);
+     //this is a test address
+    lazyLionI _lazyLion = lazyLionI(0x9C369cCA9b044dAF8799AD79De4217f382775c41);
 
              mapping(address => bool) public isWhitelisted;
              mapping(address => bool) public isAdmin;
-            mapping(address => uint) public _tokensMintedByAddress;
+             mapping(address => uint) public _tokensMintedByAddress;
 
     constructor()ERC721("leafDAO","LFD"){}
     
 /**
-   * @dev Throws if called by any account that's not eded.
+   * @dev Throws if called by any account that's not whitelisted.
    */
          modifier onlyWhitelisted {
     require(isWhitelisted[msg.sender],"only whiteListedAddress can mint"); 
     _;
   }
-   modifier onlyAdmin(){
+         modifier onlyAdmin(){
     require(isAdmin[msg.sender],"only admin can call this method");  
       _;
    }
@@ -85,6 +84,7 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
    * @notice true if at least one address was added to the whitelist, 
    * false if all addresses were already in the whitelist  
    */
+
   function addAddressesToWhitelist(address[] memory addrs) onlyAdmin public returns(bool success) {
      // require(_lazyLion.balanceOf(addrs[] memory) > 0, "not a lazy lion owner");     
     for (uint256 i = 0; i < addrs.length; i++) {
@@ -93,14 +93,6 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
       }
     }
   }
-
-       function changeLazyMintAmt(uint256 _newMint) public onlyAdmin {
-        maxMintLazyAmount = _newMint;
-    }
-     function changeKingMintAmt(uint256 _newMint) public onlyAdmin {
-        maxMintKingAmount = _newMint;
-    }
-
 
     /*
     * Only whitelisted lazylion owners can mint
@@ -134,13 +126,17 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     *  those who mint the 121-500 must pay 0.06 ether + gas per token
     */
    function mintKingEdition(uint _mintAmount) nonReentrant public payable{
-    if(whitelistState == true){
-    require(isWhitelisted[msg.sender],"whitelist Enabled: only whiteListedAddress can mint"); 
-    }
-    else{
-      require(_lazyLion.balanceOf(msg.sender) > 0, "not a lazy lion owner");     
+        if(whitelistState == true){
+            require(
+           isWhitelisted[msg.sender],"whitelist Enabled: only whiteListedAddress can mint"
+           ); 
+         }
+         else{
+            require(
+           _lazyLion.balanceOf(msg.sender) > 0, "not a lazy lion owner"
+            );     
 
-    }
+         }
          // Number of tokens can't be 0.
         require(_mintAmount != 0, "Cannot mint 0 tokens");
        _tokensMintedByAddress[msg.sender]  += _mintAmount;//update users record
@@ -162,13 +158,20 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
    }
 
 
-   function changeWhitelistState() public onlyAdmin{
+      function changeWhitelistState() public onlyAdmin{
        whitelistState = !whitelistState;
 
-   }
-    function getBalance() public view returns (uint256) {
+        }
+      function getBalance() onlyAdmin public view returns  (uint256) {
         return address(this).balance;
-    }
+        }
+
+       function changeLazyMintAmt(uint256 _newMint) public onlyAdmin {
+        maxMintLazyAmount = _newMint;
+        }
+       function changeKingMintAmt(uint256 _newMint) public onlyAdmin {
+        maxMintKingAmount = _newMint;
+         }
   
 }
 
