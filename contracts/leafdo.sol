@@ -24,8 +24,6 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     // string public constant whitelistRole ="whitelist";
     // string public constant adminRole = "admin";
     bool public whitelistState = false;
-    uint public newLazyMintAmt;
-    uint public newKingMintAmt;
     uint maxMintKingAmount = 3;
     uint maxMintLazyAmount = 1;
      uint MaxTokenSupply = 500;
@@ -96,11 +94,11 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     }
   }
 
-       function increaseLazyMintAmt(uint256 _newMint) public onlyAdmin {
-        newLazyMintAmt = _newMint;
+       function changeLazyMintAmt(uint256 _newMint) public onlyAdmin {
+        maxMintLazyAmount = _newMint;
     }
-     function increaseKingMintAmt(uint256 _newMint) public onlyAdmin {
-        newKingMintAmt = _newMint;
+     function changeKingMintAmt(uint256 _newMint) public onlyAdmin {
+        maxMintKingAmount = _newMint;
     }
 
 
