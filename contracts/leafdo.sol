@@ -106,8 +106,6 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     * Only whitelisted lazylion owners can mint
     * those who mint the 1-120 tokens can only mint 1 per wallet
     * those who mint 1-120 will mint free + gas
-    * those who mint the 121-500 tokens can only mint 3 per wallet
-    *  those who mint the 121-500 must pay 0.06 ether
     */
 
    function mintLazyEdition(uint _mintAmount) nonReentrant onlyWhitelisted public{
@@ -128,6 +126,13 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
        }
         }   
    }
+
+   /*
+    * If whitelist is enabled,only whitelisted lazylion owners can mint
+    * If whitelist is disabled, all lazy lion owners can mint
+    * those who mint the 121-500 tokens can only mint 3 per wallet
+    *  those who mint the 121-500 must pay 0.06 ether + gas per token
+    */
    function mintKingEdition(uint _mintAmount) nonReentrant public payable{
     if(whitelistState == true){
     require(isWhitelisted[msg.sender],"whitelist Enabled: only whiteListedAddress can mint"); 
