@@ -22,11 +22,11 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
 
     uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     bool public whitelistState = false;
-    uint maxMintKingAmount = 3;
-    uint maxMintLazyAmount = 1;
+    uint public maxMintKingAmount = 3;
+    uint public maxMintLazyAmount = 1;
      uint MaxTokenSupply = 500;
      //this is a test address
-    lazyLionI _lazyLion = lazyLionI(0x9C369cCA9b044dAF8799AD79De4217f382775c41);
+    lazyLionI _lazyLion = lazyLionI(0x0fC5025C764cE34df352757e82f7B5c4Df39A836);
 
              mapping(address => bool) public isWhitelisted;
              mapping(address => bool) public isAdmin;
@@ -74,10 +74,9 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
 
   /**
   * @notice addrs must an input like below:
-  ["0x5B38Da6a701c568545dCfcB03FcB875f56beddC4",
-  "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2",
-  "0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db",
-  "0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB"]
+  ["0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
+  "0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB",
+  "0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C"]
   * @notice if 1 out of the several addrs do not have lazy lion, it will revert
    * @dev add addresses to the whitelist
    * @param addrs addresses
@@ -172,6 +171,11 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
        function changeKingMintAmt(uint256 _newMint) public onlyAdmin {
         maxMintKingAmount = _newMint;
          }
+
+
+         //add withdraw function
+         //onlyOwner
+         //getcall
   
 }
 
