@@ -24,7 +24,7 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     bool public whitelistState = false;
     uint public maxMintKingAmount = 3;
     uint public maxMintLazyAmount = 1;
-     uint MaxTokenSupply = 500;
+     uint public MaxTokenSupply = 500;
      //this is a test address
     lazyLionI _lazyLion = lazyLionI(0x0fC5025C764cE34df352757e82f7B5c4Df39A836);
 
@@ -173,9 +173,16 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
          }
 
 
-         //add withdraw function
-         //onlyOwner
+
          //getcall
+
+         function withdraw(uint256 amount) onlyOwner nonReentrant private returns(bool){
+                require(amount <= address(this).balance);
+                owner.transfer(amount);
+                return true;
+
+
+         }
   
 }
 
