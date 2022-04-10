@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 * only those with lazylion token can mint
 * 
 */
-contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
+contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
  using Counters for Counters.Counter;
 
  Counters.Counter private _tokenIdCounter;
@@ -26,13 +26,13 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
     uint public maxMintLazyAmount = 1;
      uint public MaxTokenSupply = 500;
      //this is a test address
-    lazyLionI _lazyLion = lazyLionI(0x0fC5025C764cE34df352757e82f7B5c4Df39A836);
+    lazyLionI _lazyLion = lazyLionI(0xd9145CCE52D386f254917e481eB44e9943F39138);
 
              mapping(address => bool) public isWhitelisted;
              mapping(address => bool) public isAdmin;
              mapping(address => uint) public _tokensMintedByAddress;
 
-    constructor()ERC721("leafDAO","LFD"){}
+    constructor()ERC721("XTRA_for_LIONS","EXTRALIONS"){}
     
 /**
    * @dev Throws if called by any account that's not whitelisted.
@@ -47,6 +47,12 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
    }
   
       event WhitelistedAddressAdded(address addr);
+      event adminAdded(address addr);
+      event adminRemoved(address addr);
+      event mintedLazyEdition(address addr, uint256 _mintAmount);
+      event mintedKingEdition(address addr, uint256 _mintAmount);
+      event balanceWithdrawn(address to, uint256 balance);
+
 
   /**
    * @dev add an address to the whitelist
@@ -61,6 +67,7 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
         emit WhitelistedAddressAdded(addr);
       success = true; 
     }
+              emit WhitelistedAddressAdded(addr);
 
   }
   function addAsAdmin(address addr) onlyOwner external returns(bool success) {
@@ -69,6 +76,8 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
       isAdmin[addr] = true;
         success = true; 
     }
+
+                      emit adminAdded(addr);
 
   }
 
@@ -116,6 +125,8 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
              _safeMint(msg.sender, mintIndex);
        }
         }   
+
+        emit mintedLazyEdition(msg.sender, _mintAmount);
    }
 
    /*
@@ -146,7 +157,7 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
         require(tokenLeft <= MaxTokenSupply, "Minting would exceed max. supply");
         uint pricePerToken = mintPrice * _mintAmount;
         // Check that the right amount of Ether was sent.
-        require(pricePerToken<= msg.value, "Not enough Ether sent."); 
+        require(pricePerToken <= msg.value, "Not enough Ether sent."); 
        uint256 mintIndex = totalSupply();
                // For each token requested, mint one.
         for(uint256 i = 0; i < _mintAmount; i++) {
@@ -154,6 +165,8 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
              _safeMint(msg.sender, mintIndex);
        }
         }
+                emit mintedKingEdition(msg.sender, _mintAmount);
+
    }
 
 
@@ -172,18 +185,28 @@ contract leafDao is ERC721Enumerable, Ownable, ReentrancyGuard{
         maxMintKingAmount = _newMint;
          }
 
-
-
-         //getcall
-
-         function withdraw(uint256 amount) onlyOwner nonReentrant private returns(bool){
-                require(amount <= address(this).balance);
-                owner.transfer(amount);
+            //withdraw all ether
+         function withdraw() onlyOwner nonReentrant public payable returns(bool){
+           address payable to = payable(msg.sender);
+           to.transfer(getBalance());
                 return true;
 
+                  //  emit balanceWithdrawn(msg.sender, balance);
 
          }
-  
+            //remove admin
+        function removeAdmin(address addr) onlyOwner external returns(bool success) {
+                 require(isAdmin[addr], "Address not an admin");
+               if (isAdmin[addr]) {
+             isAdmin[addr] = false;
+                success = true; 
+        }
+
+                    emit adminRemoved(addr);
+
+                  }
+
+
 }
 
 
