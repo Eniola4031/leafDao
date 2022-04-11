@@ -201,11 +201,12 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
          function withdraw() onlyOwner nonReentrant public payable returns(bool){
         payable(msg.sender).transfer(getBalance());
                 return true;
- //address payable to = 
+                    //address payable to = 
 
-                  //  emit balanceWithdrawn(msg.sender, balance);
+                 emit balanceWithdrawn(msg.sender, address(msg.sender).balance);
 
          }
+
             //remove admin
         function removeAdmin(address addr) onlyOwner external returns(bool success) {
                  require(isAdmin[addr], "Address not an admin");
