@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 
  interface lazyLionI{
@@ -93,14 +94,25 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
    * false if all addresses were already in the whitelist  
    */
 
-  function addAddressesToWhitelist(address[] memory addrs) onlyAdmin public returns(bool success) {
-     // require(_lazyLion.balanceOf(addrs[] memory) > 0, "not a lazy lion owner");     
-    for (uint256 i = 0; i < addrs.length; i++) {
-      if (addToWhitelist(addrs[i])) {
-        success = true;
-      }
-    }
+   function addAddressesToWhitelist(bytes32[] calldata _merkleProof) onlyAdmin public {
+     require(!isWhitelisted[_merkleProof], "already added to whitelisted");
+     //generate a leaf node
+     bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+     //checks for valid proof
+     require(MerkleProof.verify(_merkleProof,merkleRoot,leaf),"invalid merkle proof");
+    isWhitelisted[_merkleProof] = true;
   }
+
+  // function addAddressesToWhitelist(address[] calldata addrs) onlyAdmin public returns(bool success) {
+  //     // require(!isWhitelisted[addrs], "already whitelisted");
+  //  //  require(_lazyLion.balanceOf(addrs) > 0, "not a lazy lion owner");     
+  //   for (uint256 i = 0; i < addrs.length; i++) {
+  //     if (addToWhitelist(addrs[i])) {
+  //       success = true;
+  //     }
+  //   }
+  // }
+      bytes32 public merkleRoot;
 
     /*
     * Only whitelisted lazylion owners can mint
@@ -187,9 +199,9 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
             //withdraw all ether
          function withdraw() onlyOwner nonReentrant public payable returns(bool){
-           address payable to = payable(msg.sender);
-           to.transfer(getBalance());
+        payable(msg.sender).transfer(getBalance());
                 return true;
+ //address payable to = 
 
                   //  emit balanceWithdrawn(msg.sender, balance);
 
