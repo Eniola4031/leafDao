@@ -26,8 +26,10 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
     uint public maxMintKingAmount = 3;
     uint public maxMintLazyAmount = 1;
      uint public MaxTokenSupply = 500;
+      /// @notice ERC721-claimee inclusion root
+      bytes32 public merkleRoot;
      //this is a test address
-    lazyLionI _lazyLion = lazyLionI(0xd9145CCE52D386f254917e481eB44e9943F39138);
+    lazyLionI _lazyLion = lazyLionI(0x7E254Be71B17C65BeD0A8c16E837a445B61e6Bc7);
 
              mapping(address => bool) public isWhitelisted;
              mapping(address => bool) public isAdmin;
@@ -53,6 +55,11 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
       event mintedLazyEdition(address addr, uint256 _mintAmount);
       event mintedKingEdition(address addr, uint256 _mintAmount);
       event balanceWithdrawn(address to, uint256 balance);
+
+
+        /// @notice Thrown if address/amount are not part of Merkle tree
+        error NotInMerkle();
+
 
 
   /**
@@ -86,21 +93,28 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
   * @notice addrs must an input like below:
   ["0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
   "0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB",
-  "0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C"]
+  "0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C",
+  "0xE3A9a11232f4D52786CA61f56bB7Fb01b00C80cd",
+  ]
   * @notice if 1 out of the several addrs do not have lazy lion, it will revert
    * @dev add addresses to the whitelist
-   * @param addrs addresses
+   * @param to addresses
+   * @param _merkleProof hash
    * @notice true if at least one address was added to the whitelist, 
    * false if all addresses were already in the whitelist  
    */
 
-   function addAddressesToWhitelist(bytes32[] calldata _merkleProof) onlyAdmin public {
-     require(!isWhitelisted[_merkleProof], "already added to whitelisted");
-     //generate a leaf node
-     bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+   function addAddressesToWhitelist(address to, bytes32[] calldata _merkleProof) onlyAdmin public {
+     require(!isWhitelisted[to], "already added to whitelisted");
+     //generate a leaf node to verify merkle proof, or revert if not in tree
+     bytes32 leaf = keccak256(abi.encodePacked(to));
      //checks for valid proof
-     require(MerkleProof.verify(_merkleProof,merkleRoot,leaf),"invalid merkle proof");
-    isWhitelisted[_merkleProof] = true;
+        //  bool isValidLeaf = MerkleProof.verify(_merkleProof, merkleRoot, leaf);
+        // if (!isValidLeaf) revert NotInMerkle();
+
+    require(MerkleProof.verify(_merkleProof,merkleRoot,leaf),"invalid merkle proof");
+    isWhitelisted[to] = true;
+
   }
 
   // function addAddressesToWhitelist(address[] calldata addrs) onlyAdmin public returns(bool success) {
@@ -112,7 +126,6 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
   //     }
   //   }
   // }
-      bytes32 public merkleRoot;
 
     /*
     * Only whitelisted lazylion owners can mint
@@ -199,11 +212,11 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
             //withdraw all ether
          function withdraw() onlyOwner nonReentrant public payable returns(bool){
-        payable(msg.sender).transfer(getBalance());
+           address payable gnos = payable(0x5b06A1aBa1aC33d34C3c48214F6C874691A622C6);
+               gnos.transfer(getBalance());
                 return true;
-                    //address payable to = 
 
-                 emit balanceWithdrawn(msg.sender, address(msg.sender).balance);
+             //    emit balanceWithdrawn(msg.sender, address(msg.sender).balance);
 
          }
 

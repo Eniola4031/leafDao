@@ -1,6 +1,18 @@
+const {MarkleTree} = require ("markletreejs");
+const {Keccak256} = require ("keccak256");
+const { keccak256 } = require("ethers/lib/utils");
 
 
+let whitelist = []
 
+const leafnode= whitelist.map(addr => keccak256(addr));
+const MarkleTree = new MarkleTree (leafnode, keccak256, {sortPairs:true});
+
+//get the root hash of the markle tree in hex format
+
+const rootHash= MarkleTree.getRoot();
+
+console.log ("whitelistmarkletree/n", Markletree.toString());
 
 
 
