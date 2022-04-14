@@ -5,9 +5,10 @@ const keccak256 = require('keccak256');
 // const { keccak256 } = require("ethers/lib/utils");
 
 
-let whitelist =  ["0x1aE0EA34a72D944a8C7603FfB3eC30a6669E454C",
+let whitelist =  ["0x5B38Da6a701c568545dCfcB03FcB875f56beddC4",
+ "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2",
  "0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db",
- "0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB"]
+"0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB"]
 
 // The leaves, tree, and root are all PRE-DETERMINED prior to adding to whitelist
 

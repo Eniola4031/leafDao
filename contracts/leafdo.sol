@@ -23,6 +23,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
  using Counters for Counters.Counter;
 
  Counters.Counter private _tokenIdCounter;
+ 
 
     uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     bool public whitelistState = false;
@@ -32,7 +33,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
     /// @notice whiteliste address inclusion root
      bytes32 public  merkleRoot;
      //this is a test lazyLion address
-    lazyLionI _lazyLion = lazyLionI(0x7E254Be71B17C65BeD0A8c16E837a445B61e6Bc7);
+    lazyLionI _lazyLion = lazyLionI(0xd9145CCE52D386f254917e481eB44e9943F39138);
 
     /// ==================== mappings =======================
              mapping(address => bool) public isWhitelisted;
@@ -50,7 +51,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
    /// @dev Throws if called by any account that's not whitelisted.
          modifier onlyWhitelisted {
-    require(isWhitelisted[msg.sender],"only whiteListedAddress can mint"); 
+    require(isWhitelisted[msg.sender] = true,"only whiteListedAddress can mint"); 
     _;
   }
          modifier onlyAdmin(){
@@ -81,22 +82,6 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
     emit UpdatedRoot(_newRoot);
   }
 
-   /// @dev add an address to the whitelist
-   /// @param addr address
-   /// @notice true if the address was added to the whitelist, false if the address was already in the whitelist 
-   ///@return  success
-  function addToWhitelist(address addr) onlyAdmin external returns(bool success) {
-       require(!isWhitelisted[addr], "already whitelisted");
-    require(_lazyLion.balanceOf(addr) > 0, "not a lazy lion owner");     
-    if (!isWhitelisted[addr]) {
-      isWhitelisted[addr] = true;
-        emit WhitelistedAddressAdded(addr);
-      success = true; 
-    }
-              emit WhitelistedAddressAdded(addr);
-
-  }
-
   /// @notice Owner needs to add themselve as admin to add whitelist
   function addAsAdmin(address addr) onlyOwner external returns(bool success) {
    require(!isAdmin[addr], "already an admin");
@@ -105,14 +90,14 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
         success = true; 
     }
                       emit adminAdded(addr);
-
   }
+  
 
    /// @notice checks if the address is a member of the tree
    /// @dev the proof and root are gotten from the MerkleTree script
-   /// @param to addresses
+   /// @param to address to be checked if whitelisted
    /// @param _merkleProof hash
-   function addressTomerkleree(address to, bytes32[] calldata _merkleProof) onlyAdmin external {
+   function checkIfWhitlisted(address to, bytes32[] calldata _merkleProof) onlyAdmin external {
      require(!isWhitelisted[to], "already added to whitelisted");
      //generate a leaf node to verify merkle proof, or revert if not in tree
      bytes32 leaf = keccak256(abi.encodePacked(to));
@@ -122,17 +107,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
   }
 
-  // function addAddressesToWhitelist(address[] calldata addrs) onlyAdmin external returns(bool success) {
-  //     // require(!isWhitelisted[addrs], "already whitelisted");
-  //  //  require(_lazyLion.balanceOf(addrs) > 0, "not a lazy lion owner");     
-  //   for (uint256 i = 0; i < addrs.length; i++) {
-  //     if (addToWhitelist(addrs[i])) {
-  //       success = true;
-  //     }
-  //   }
-  // }
-
-    
+ 
     /// @notice Only whitelisted lazylion owners can mint
    function mintLazyEdition(uint _mintAmount) nonReentrant onlyWhitelisted external{
      // Number of tokens can't be 0.
@@ -157,7 +132,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
     /// @notice only whitelisted address can mint if whitelist is disabled
     /// @notice members can only mint this edition if they pay the mintPrice
-    /// @param _mintAmount
+    /// @param _mintAmount is the min token amount
    function mintKingEdition(uint _mintAmount) nonReentrant external payable{
         if(whitelistState == true){
             require(
@@ -210,7 +185,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
             //withdraw all ether
          function withdraw() onlyOwner nonReentrant public payable returns(bool){
-           address payable gnos = payable(0x5b06A1aBa1aC33d34C3c48214F6C874691A622C6);
+           address payable gnos = payable(msg.sender);
                gnos.transfer(getBalance());
                 return true;
 
@@ -230,17 +205,5 @@ contract XTRA_for_LIONS is ERC721Enumerable, Ownable, ReentrancyGuard{
 
                   }
 
-
 }
 
-
-  // ["0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
-  // "0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB",
-  // "0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C",
-  // "0xE3A9a11232f4D52786CA61f56bB7Fb01b00C80cd",
-  // "0x5B38Da6a701c568545dCfcB03FcB875f56beddC4",
-  // "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2",
-  // "0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
-  // "0xdD870fA1b7C4700F2BD7f44238821C26f7392148",
-  // "0x583031D1113aD414F02576BD6afaBfb302140225",
-  // ]
