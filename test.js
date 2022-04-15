@@ -29,8 +29,7 @@ const verified = tree.verify(proof, whitelistAddr, root)
 console.log(verified) // true
 
 
-
-
+["0x9dadd8333e9a0b1d875dae278dae592dba2169d08f1411cc3b5c3e88db14c38d"]
 
 // let whitelist =["0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
 // "0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB",

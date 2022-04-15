@@ -1,6 +1,12 @@
 [
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "_merkleRoot",
+				"type": "bytes32"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -59,18 +65,74 @@
 		"inputs": [
 			{
 				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "previousAdminRole",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "newAdminRole",
+				"type": "bytes32"
+			}
+		],
+		"name": "RoleAdminChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
 				"internalType": "address",
-				"name": "previousOwner",
+				"name": "account",
 				"type": "address"
 			},
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "newOwner",
+				"name": "sender",
 				"type": "address"
 			}
 		],
-		"name": "OwnershipTransferred",
+		"name": "RoleGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleRevoked",
 		"type": "event"
 	},
 	{
@@ -103,6 +165,19 @@
 		"inputs": [
 			{
 				"indexed": false,
+				"internalType": "bytes32",
+				"name": "_newRoot",
+				"type": "bytes32"
+			}
+		],
+		"name": "UpdatedRoot",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
 				"internalType": "address",
 				"name": "addr",
 				"type": "address"
@@ -110,6 +185,115 @@
 		],
 		"name": "WhitelistedAddressAdded",
 		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "addr",
+				"type": "address"
+			}
+		],
+		"name": "adminAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "addr",
+				"type": "address"
+			}
+		],
+		"name": "adminRemoved",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "balance",
+				"type": "uint256"
+			}
+		],
+		"name": "balanceWithdrawn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "addr",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_mintAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "mintedKingEdition",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "addr",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_mintAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "mintedLazyEdition",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "DEFAULT_ADMIN_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MaxTokenSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -131,60 +315,16 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address[]",
-				"name": "addrs",
-				"type": "address[]"
-			}
-		],
-		"name": "addAddressesToWhitelist",
+		"inputs": [],
+		"name": "adminRole",
 		"outputs": [
 			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
 			}
 		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "addr",
-				"type": "address"
-			}
-		],
-		"name": "addAsAdmin",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "addr",
-				"type": "address"
-			}
-		],
-		"name": "addToWhitelist",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -222,6 +362,32 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_newMint",
+				"type": "uint256"
+			}
+		],
+		"name": "changeKingMintAmt",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_newMint",
+				"type": "uint256"
+			}
+		],
+		"name": "changeLazyMintAmt",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -266,38 +432,54 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_newMint",
-				"type": "uint256"
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
 			}
 		],
-		"name": "increaseKingMintAmt",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"name": "getRoleAdmin",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_newMint",
-				"type": "uint256"
-			}
-		],
-		"name": "increaseLazyMintAmt",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
 			{
 				"internalType": "address",
-				"name": "",
+				"name": "account",
 				"type": "address"
 			}
 		],
-		"name": "isAdmin",
+		"name": "grantRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "hasRole",
 		"outputs": [
 			{
 				"internalType": "bool",
@@ -346,6 +528,58 @@
 				"internalType": "bool",
 				"name": "",
 				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "managerRole",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "maxMintKingAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "maxMintLazyAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "merkleRoot",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
 			}
 		],
 		"stateMutability": "view",
@@ -404,45 +638,6 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "newKingMintAmt",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "newLazyMintAmt",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -462,8 +657,37 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "renounceOwnership",
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "renounceRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "revokeRole",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -670,14 +894,45 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
+				"internalType": "bytes32",
+				"name": "_newRoot",
+				"type": "bytes32"
 			}
 		],
-		"name": "transferOwnership",
+		"name": "updateMerkleRoot",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes32[]",
+				"name": "_merkleProof",
+				"type": "bytes32[]"
+			}
+		],
+		"name": "verifyWhitlisted",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "whitelistRole",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -691,6 +946,19 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdraw",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]
