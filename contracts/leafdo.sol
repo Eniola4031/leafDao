@@ -10,11 +10,16 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-
 /// @title This is the LazyLion interface.
  interface lazyLionI{
     function balanceOf(address owner) external view returns (uint256 balance);
  }
+
+// .----,  .--.  .---..-.  .-.   .-.   .-. .----. .-. .-. .----.
+// | |    / {} \{_   / \ \/ /    | |   | |/  {}  \|  `| |{ {__  
+// | `--./  /\  \/    } }  {     | `--.| |\      /| |\  |.-._} }
+// `----'`-'  `-'`---' / /\ \    `----'`-' `----' `-' `-'`----'
+
 
 /// @title XTRA_for_LIONS
 /// @notice EXTRALIONS claimable by LazyLion owners
@@ -27,10 +32,10 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
 
      /// ==================== State Variables  =======================
 
-    bytes32 public constant managerRole = keccak256("manager");
-    bytes32 public constant whitelistRole = keccak256("whitelisted");
-    bytes32 public constant adminRole = keccak256("admin");
+    bytes32 public constant MANAGER_ROLE = keccak256("manager");
+    //bytes32 public constant ADMIN_ROLE = keccak256("admin");
     bool public whitelistState;
+     address public gnosisSafeInstance;
     uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     uint public maxMintKingAmount = 3;
     uint public maxMintLazyAmount = 1;
@@ -38,7 +43,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
     /// @notice whiteliste address inclusion root
      bytes32 public  merkleRoot;
      //this is a test lazyLion address
-    lazyLionI _lazyLion = lazyLionI(0x1E44490E45BB9C21397De48d7f534582cE0dd51d);
+    lazyLionI _lazyLion = lazyLionI(0x8FCD0A31f825FDb16D674279a2883Ea4ACfe6368);
 
 
     /// ==================== mappings =======================
@@ -48,58 +53,53 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
 
 
     /// ==================== constructor =======================
-    constructor(bytes32 _merkleRoot)ERC721("XTRA_for_LIONS","EXTRALIONS"){
+    /// @dev _merkleRoot must append "0x" prefix with the hash
+    /// @dev Grants `DEFAULT_ADMIN_ROLE` to the account that deploys the contract.
+    /// See {ERC20-constructor}.
+
+    constructor(bytes32 _merkleRoot, address admin)ERC721("XTRA_for_LIONS","EXTRALIONS"){
               merkleRoot = _merkleRoot; // Update root
-                  _setRoleAdmin(adminRole, adminRole);
-                   _setRoleAdmin(managerRole, adminRole);
-                  _setRoleAdmin(whitelistRole, managerRole);
+                   _setRoleAdmin(MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
-                  _setupRole(adminRole,_msgSender());
-                  _setupRole(adminRole,address(this));
-
+                  _setupRole(DEFAULT_ADMIN_ROLE,_msgSender());// The creator of the contract is the default admin
+                  _setupRole(DEFAULT_ADMIN_ROLE,admin);// We add a custom admin      
+                  _setupRole(DEFAULT_ADMIN_ROLE,gnosisSafeInstance);//add gnosis safe to list of admin
     }
+    
 
        /// ====================== events =======================
       event UpdatedRoot(bytes32 _newRoot);
-      event WhitelistedAddressAdded(address addr);
-      event adminAdded(address addr);
-      event adminRemoved(address addr);
+      event managerAdded(address account);
       event mintedLazyEdition(address addr, uint256 _mintAmount);
       event mintedKingEdition(address addr, uint256 _mintAmount);
-      event balanceWithdrawn(address to, uint256 balance);
+      event safeAddressAdded(address newInstance);
 
 
     /// ====================== functions ========================
 
      /// @notice Updates the merkleRoot with the given new root
     /// @param _newRoot new merkleRoot to work with
-  function updateMerkleRoot(bytes32 _newRoot) onlyRole(managerRole) external {
+  function updateMerkleRoot(bytes32 _newRoot) onlyRole(MANAGER_ROLE) external {
     merkleRoot = _newRoot;
     emit UpdatedRoot(_newRoot);
   }
 
    /// @notice checks if the address is a member of the tree
    /// @dev the proof and root are gotten from the MerkleTree script
-   /// @param to address to be checked if whitelisted
-   /// @param _merkleProof hash
-   function verifyWhitlisted(address to, bytes32[] calldata _merkleProof) onlyRole(managerRole) external {
-          //generate a leaf node to verify merkle proof, or revert if not in tree
-     bytes32 leaf = keccak256(abi.encodePacked(to));
+   /// @param _merkleProof to check if to is part of merkle tree
+    /// @notice Only whitelisted lazylion owners can mint
+   function mintLazyEdition(uint _mintAmount, bytes32[] calldata _merkleProof) nonReentrant external{
+     require(_lazyLion.balanceOf(msg.sender) > 0);
+  //generate a leaf node to verify merkle proof, or revert if not in tree
+     bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
      //checks for valid proof
     require(MerkleProof.verify(_merkleProof,merkleRoot,leaf),"invalid merkle proof");
-               hasRole(whitelistRole, to) == true;
-               isWhitelisted[to] = true;
-  }
-
- 
-    /// @notice Only whitelisted lazylion owners can mint
-   function mintLazyEdition(uint _mintAmount) nonReentrant onlyRole(whitelistRole)external{
+                 isWhitelisted[msg.sender] = true;
      // Number of tokens can't be 0.
        require(_mintAmount != 0, "Cannot mint 0 tokens");
        _tokensMintedByAddress[msg.sender] += _mintAmount; //update users record
         //check if address has minted
        require(_tokensMintedByAddress[msg.sender] <= maxMintLazyAmount, "you have exceeded mint limit per wallet");
-
         uint tokenLeft = totalSupply() + _mintAmount;
         // Check that the number of tokens requested wouldn't exceed what's left.
         require(tokenLeft <= MaxTokenSupply, "Minting would exceed max. supply");
@@ -111,20 +111,25 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
              _safeMint(msg.sender, mintIndex);
        }
         }   
-
         emit mintedLazyEdition(msg.sender, _mintAmount);
    }
 
     /// @notice only whitelisted address can mint if whitelist is disabled
     /// @notice members can only mint this edition if they pay the mintPrice
     /// @param _mintAmount is the min token amount
-   function mintKingEdition(uint _mintAmount) onlyRole(whitelistRole) nonReentrant external payable{
+    /// @param _merkleProof to make sure address is whitelisted
+   function mintKingEdition(uint _mintAmount, bytes32[] calldata _merkleProof) nonReentrant external payable{
+     //generate a leaf node to verify merkle proof, or revert if not in tree
+     bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+     //checks for valid proof
+    require(MerkleProof.verify(_merkleProof,merkleRoot,leaf),"invalid merkle proof");
+                 isWhitelisted[msg.sender] = true;
         if(whitelistState == true){
             require(
-           hasRole(whitelistRole, msg.sender),"whitelist Enabled: only whiteListedAddress can mint"
+            isWhitelisted[msg.sender] = true,"whitelist Enabled: only whiteListedAddress can mint"
            ); 
          }else{
-          (_lazyLion.balanceOf(msg.sender) > 0, "not a lazy lion owner");     
+          (_lazyLion.balanceOf(msg.sender) > 0, "Whitelist disabled:not a lazy lion owner");     
          }
          // Number of tokens can't be 0.
         require(_mintAmount != 0, "Cannot mint 0 tokens");
@@ -151,36 +156,62 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
    }
 
 
-      function changeWhitelistState() public onlyRole(managerRole){
+      function changeWhitelistState() public onlyRole(MANAGER_ROLE){
        whitelistState = !whitelistState;
 
         }
-      function getBalance() onlyRole(managerRole) public view returns  (uint256) {
+      function getBalance() onlyRole(MANAGER_ROLE) public view returns(uint256) {
         return address(this).balance;
         }
 
-       function changeLazyMintAmt(uint256 _newMint) public onlyRole(managerRole) {
+       function changeLazyMintAmt(uint256 _newMint) public onlyRole(MANAGER_ROLE) {
         maxMintLazyAmount = _newMint;
         }
-       function changeKingMintAmt(uint256 _newMint) public onlyRole(managerRole) {
+       function changeKingMintAmt(uint256 _newMint) public onlyRole(MANAGER_ROLE) {
         maxMintKingAmount = _newMint;
          }
 
-            //withdraw all ether
-         function withdraw() onlyRole(managerRole) nonReentrant public returns(bool){
-           address payable gnosWallet = payable(msg.sender);
-               (bool sent,) = gnosWallet.call{value: getBalance()}("");
+// only role who have access to the gnosis safe can call this method and it will be deposit in gnosis for mulsig to sig
+         function withdraw() onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant public returns(bool){
+               (bool sent,) = payable(gnosisSafeInstance).call{value: getBalance()}("");
             require(sent,"Ether not sent:failed transaction");
                 return true;
-
-               // emit balanceWithdrawn(msg.sender, address(this).balance);
-
          }
+    /// @dev Add an account to the manager role. Restricted to admins.
+        function addAsManager(address account) public onlyRole(DEFAULT_ADMIN_ROLE)
+       {
+         require(hasRole(MANAGER_ROLE,account) == false,"Already a manager");
+           grantRole(MANAGER_ROLE, account);
 
+            emit managerAdded(account);
+       }
+        
+      // Create a bool check to see if a account address has the role admin
+      function isAdmin(address account) public view returns(bool)
+      {
+           return hasRole(DEFAULT_ADMIN_ROLE, account);
+      }
+        // Create a bool check to see if a account address has the role admin
+      function isManager(address account) public view returns(bool)
+      {
+           return hasRole(MANAGER_ROLE, account);
+      }
+       function addSafeAddress(address newInstance) public virtual onlyRole(DEFAULT_ADMIN_ROLE){
+         gnosisSafeInstance = newInstance;
 
-                  ///@custom:interface for overridding the supportInterface method on AccessControl and ERC721Enumerable
-                   function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControl) returns (bool) {
+             emit safeAddressAdded(newInstance);
+       }
+
+          ///@custom:interface for overridding the supportInterface method on AccessControl and ERC721Enumerable
+       function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
+
+         ///@custom:interface for overridding the supportInterface method on AccessControl and ERC721Enumerable
+        function _beforeTokenTransfer(address from, address to,uint256 tokenId) internal virtual override(ERC721Enumerable) {
+                  super._beforeTokenTransfer(from, to, tokenId);
+
+        }
+
 
 }
