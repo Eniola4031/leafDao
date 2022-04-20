@@ -33,9 +33,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
      /// ==================== State Variables  =======================
 
     bytes32 public constant MANAGER_ROLE = keccak256("manager");
-    //bytes32 public constant ADMIN_ROLE = keccak256("admin");
     bool public whitelistState;
-     address public gnosisSafeInstance;
     uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     uint public maxMintKingAmount = 3;
     uint public maxMintLazyAmount = 1;
@@ -57,15 +55,15 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
     /// @dev Grants `DEFAULT_ADMIN_ROLE` to the account that deploys the contract.
     /// See {ERC20-constructor}.
 
-    constructor(bytes32 _merkleRoot, address admin)ERC721("XTRA_for_LIONS","EXTRALIONS"){
-              merkleRoot = _merkleRoot; // Update root
-                   _setRoleAdmin(MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
+    constructor(bytes32 _merkleRoot, address _admin)ERC721("XTRA_for_LIONS","EXTRALIONS"){
+         address admin = _admin;
+          merkleRoot = _merkleRoot; // Update root
+      _setRoleAdmin(MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
-                  _setupRole(DEFAULT_ADMIN_ROLE,_msgSender());// The creator of the contract is the default admin
-                  _setupRole(DEFAULT_ADMIN_ROLE,admin);// We add a custom admin      
-                  _setupRole(DEFAULT_ADMIN_ROLE,gnosisSafeInstance);//add gnosis safe to list of admin
+      _setupRole(DEFAULT_ADMIN_ROLE,_msgSender());// The creator of the contract is the default admin
+      _setupRole(DEFAULT_ADMIN_ROLE,admin);// We add a custom admin which could also be the gnosis instance     
     }
-    
+
 
        /// ====================== events =======================
       event UpdatedRoot(bytes32 _newRoot);
@@ -170,10 +168,9 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
        function changeKingMintAmt(uint256 _newMint) public onlyRole(MANAGER_ROLE) {
         maxMintKingAmount = _newMint;
          }
-
 // only role who have access to the gnosis safe can call this method and it will be deposit in gnosis for mulsig to sig
          function withdraw() onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant public returns(bool){
-               (bool sent,) = payable(gnosisSafeInstance).call{value: getBalance()}("");
+               (bool sent,) = payable(msg.sender).call{value: getBalance()}("");
             require(sent,"Ether not sent:failed transaction");
                 return true;
          }
@@ -196,11 +193,6 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
       {
            return hasRole(MANAGER_ROLE, account);
       }
-       function addSafeAddress(address newInstance) public virtual onlyRole(DEFAULT_ADMIN_ROLE){
-         gnosisSafeInstance = newInstance;
-
-             emit safeAddressAdded(newInstance);
-       }
 
           ///@custom:interface for overridding the supportInterface method on AccessControl and ERC721Enumerable
        function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControl) returns (bool) {
