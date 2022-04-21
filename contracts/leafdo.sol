@@ -15,10 +15,10 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
     function balanceOf(address owner) external view returns (uint256 balance);
  }
 
-// .----,  .--.  .---..-.  .-.   .-.   .-. .----. .-. .-. .----.
-// | |    / {} \{_   / \ \/ /    | |   | |/  {}  \|  `| |{ {__  
-// | `--./  /\  \/    } }  {     | `--.| |\      /| |\  |.-._} }
-// `----'`-'  `-'`---' / /\ \    `----'`-' `----' `-' `-'`----'
+//.-.  .-.   .-.   .-. .----. .-. .-. .----.
+// \ \/ /    | |   | |/  {}  \|  `| |{ {__  
+//  }  {     | `--.| |\      /| |\  |.-._} }
+// / /\ \     `----'`-' `----' `-' `-'`----'
 
 
 /// @title XTRA_for_LIONS
@@ -32,8 +32,9 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
 
      /// ==================== State Variables  =======================
 
-    bytes32 public constant MANAGER_ROLE = keccak256("manager");
+    bytes32 public constant MANAGER_ROLE = keccak256(abi.encodePacked("manager"));
     bool public whitelistState;
+    address public admin;
     uint256 public constant mintPrice = 60000000000000000; // 0.06 ether;
     uint public maxMintKingAmount = 3;
     uint public maxMintLazyAmount = 1;
@@ -56,7 +57,7 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
     /// See {ERC20-constructor}.
 
     constructor(bytes32 _merkleRoot, address _admin)ERC721("XTRA_for_LIONS","EXTRALIONS"){
-         address admin = _admin;
+          admin = _admin;
           merkleRoot = _merkleRoot; // Update root
       _setRoleAdmin(MANAGER_ROLE, DEFAULT_ADMIN_ROLE);
 
@@ -70,7 +71,6 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
       event managerAdded(address account);
       event mintedLazyEdition(address addr, uint256 _mintAmount);
       event mintedKingEdition(address addr, uint256 _mintAmount);
-      event safeAddressAdded(address newInstance);
 
 
     /// ====================== functions ========================
@@ -87,24 +87,24 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
    /// @param _merkleProof to check if to is part of merkle tree
     /// @notice Only whitelisted lazylion owners can mint
    function mintLazyEdition(uint _mintAmount, bytes32[] calldata _merkleProof) nonReentrant external{
-     require(_lazyLion.balanceOf(msg.sender) > 0);
+     require(_lazyLion.balanceOf(msg.sender) > 0,"must be a lazy lion owner");
   //generate a leaf node to verify merkle proof, or revert if not in tree
      bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-     //checks for valid proof
-    require(MerkleProof.verify(_merkleProof,merkleRoot,leaf),"invalid merkle proof");
+    require(
+      MerkleProof.verify(_merkleProof,merkleRoot,leaf),
+      "invalid merkle proof");     //checks for valid proof
+
                  isWhitelisted[msg.sender] = true;
-     // Number of tokens can't be 0.
-       require(_mintAmount != 0, "Cannot mint 0 tokens");
+       require(_mintAmount != 0, "Cannot mint 0 tokens");     // Number of tokens can't be 0.
        _tokensMintedByAddress[msg.sender] += _mintAmount; //update users record
-        //check if address has minted
-       require(_tokensMintedByAddress[msg.sender] <= maxMintLazyAmount, "you have exceeded mint limit per wallet");
+       require(
+         _tokensMintedByAddress[msg.sender] <= maxMintLazyAmount, 
+         "you have exceeded mint limit per wallet");        //check if address has minted
         uint tokenLeft = totalSupply() + _mintAmount;
         // Check that the number of tokens requested wouldn't exceed what's left.
         require(tokenLeft <= MaxTokenSupply, "Minting would exceed max. supply");
-        // Check that the right amount of Ether was sent.
        uint256 mintIndex = totalSupply();
-             // For each token requested, mint one.
-        for(uint256 i = 0; i < _mintAmount; i++) {
+        for(uint256 i = 0; i < _mintAmount; i++) {    // For each token requested, mint one.
        if(mintIndex <= 120  && mintIndex <= MaxTokenSupply){
              _safeMint(msg.sender, mintIndex);
        }
@@ -169,8 +169,8 @@ contract XTRA_for_LIONS is ERC721Enumerable, ReentrancyGuard, AccessControl {
         maxMintKingAmount = _newMint;
          }
 // only role who have access to the gnosis safe can call this method and it will be deposit in gnosis for mulsig to sig
-         function withdraw() onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant public returns(bool){
-               (bool sent,) = payable(msg.sender).call{value: getBalance()}("");
+         function withdraw() onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant external returns(bool){
+               (bool sent,) = payable(admin).call{value: getBalance()}("");
             require(sent,"Ether not sent:failed transaction");
                 return true;
          }
